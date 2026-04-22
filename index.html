@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>🧸 Khitan Tools Pro - Filter, Cek Website, Copy WA + Import Data</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Inter', 'Poppins', sans-serif;
+        }
+        body {
+            background: #f0f7f0;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin: 0 0 5px 0;
+            color: #1a4d1a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .sub {
+            color: #2d6a2d;
+            margin-bottom: 20px;
+            border-left: 4px solid #3c9e3c;
+            padding-left: 15px;
+        }
+        /* import box */
+        .import-section {
+            background: white;
+            border-radius: 28px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #d4e2d4;
+        }
+        .import-header {
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .import-textarea {
+            width: 100%;
+            font-family: monospace;
+            font-size: 13px;
+            padding: 15px;
+            border-radius: 20px;
+            border: 1px solid #ccc;
+            background: #fefef7;
+            resize: vertical;
+        }
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .btn-primary {
+            background: #1e7e34;
+            color: white;
+            border: none;
+            padding: 8px 22px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 22px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #2c6e2c;
+            color: #2c6e2c;
+            padding: 8px 22px;
+            border-radius: 40px;
+            cursor: pointer;
+        }
+        .toolbar {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 28px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .filter-group {
+            display: flex;
+            gap: 12px;
+            background: #eef3ee;
+            padding: 5px 12px;
+            border-radius: 40px;
+        }
+        .filter-btn {
+            background: transparent;
+            border: none;
+            padding: 8px 20px;
+            font-weight: 600;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+        }
+        .filter-btn.active {
+            background: #1e7e34;
+            color: white;
+        }
+        .check-status-btn {
+            background: #0b5e2e;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .stats {
+            background: #e9ecef;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+            overflow: hidden;
+            border: 1px solid #dde6dd;
+        }
+        .card-header {
+            padding: 18px 20px 8px 20px;
+            background: #fefcf5;
+            border-bottom: 1px solid #e9f0e6;
+        }
+        .business-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0 0 6px 0;
+            color: #1f3b1a;
+        }
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 6px 0;
+        }
+        .stars {
+            background: #ffb800;
+            color: #2c2c2c;
+            padding: 2px 10px;
+            border-radius: 40px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        .review-count {
+            color: #4a5b3e;
+            font-size: 0.75rem;
+        }
+        .category {
+            background: #e6f4ea;
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+        }
+        .card-body {
+            padding: 12px 20px;
+        }
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0;
+            flex-wrap: wrap;
+        }
+        .phone-number {
+            font-family: monospace;
+            font-weight: bold;
+            background: #f1f5f1;
+            padding: 5px 10px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+        }
+        .website-badge {
+            background: #d9f0ff;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            word-break: break-all;
+        }
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .status-active { background: #c8f0d1; color: #006622; }
+        .status-inactive { background: #ffe0d9; color: #b13e0d; }
+        .status-waiting { background: #f3f0cf; color: #8a6e00; }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .btn-copy-phone, .btn-copy-wa {
+            border: none;
+            padding: 8px 14px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+        .btn-copy-phone { background: #eef2ff; color: #1f3a7a; border: 1px solid #cdd9ff; }
+        .btn-copy-wa { background: #25D36620; color: #075e54; border: 1px solid #25D36680; }
+        .toast-msg {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2a1b;
+            color: white;
+            padding: 8px 24px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            z-index: 999;
+            opacity: 0;
+            transition: 0.2s;
+            pointer-events: none;
+        }
+        footer {
+            text-align: center;
+            margin-top: 35px;
+            font-size: 0.7rem;
+            color: #5f735a;
+        }
+        @media (max-width: 640px) {
+            .card-grid { grid-template-columns: 1fr; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>✂️ Khitan Tool Pro + Import Data <span style="font-size: 0.9rem;">📍 Filter, Cek Website, Copy WA</span></h1>
+    <div class="sub">📥 Tempelkan data mentah (CSV / tab / teks apapun) lalu klik "Proses Data" — tools akan otomatis mengenali kolom nama, rating, telepon, website, dll.</div>
+
+    <!-- BOX IMPORT DATA -->
+    <div class="import-section">
+        <div class="import-header">
+            <span>📋 <strong>Data Mentah (copy dari excel, google sheets, atau teks tabular)</strong></span>
+            <span style="font-size:12px; color:gray;">Format bebas, sistem akan coba parse otomatis</span>
+        </div>
+        <textarea id="rawDataInput" rows="5" class="import-textarea" placeholder="Contoh data (bisa langsung tempel dari file Anda):&#10;Nama Tempat Bisnis	Katagori	Rating	Jumlah Ulasan	Alamat & Nomor Telepon	Status	Link Situs&#10;Rumah Sunat Tegal	Klinik Medis	4,9	93	Kabupaten Tegal, 0853-8554-9007	Segera tutup	http://sunattegal.com/&#10;Super Khitan Tegal	Klinik Medis	5,0	445	Kabupaten Tegal, 0811-1111-2328	Tutup	https://superkhitan.com/tegal"></textarea>
+        <div class="button-group">
+            <button id="parseDataBtn" class="btn-primary">📊 Proses & Import Data</button>
+            <button id="resetToDefaultBtn" class="btn-secondary">↺ Reset ke Data Default</button>
+            <button id="clearTextareaBtn" class="btn-outline">🧹 Kosongkan Textbox</button>
+        </div>
+        <div id="importFeedback" style="font-size:12px; margin-top:10px; color:#2c6e2c;"></div>
+    </div>
+
+    <div class="toolbar">
+        <div class="filter-group" id="filterButtonsContainer">
+            <button class="filter-btn active" data-filter="all">📋 Semua (0)</button>
+            <button class="filter-btn" data-filter="with_website">🌐 Punya Website (0)</button>
+            <button class="filter-btn" data-filter="without_website">📄 Tanpa Website (0)</button>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <button id="checkAllWebsitesBtn" class="check-status-btn">🔍 Cek Status Website (Aktif/Tidak)</button>
+            <div class="stats" id="statsStatus">⚡ Status: belum dicek</div>
+        </div>
+    </div>
+
+    <div id="mainContent">
+        <div style="text-align: center; padding: 40px;">⏳ Silakan import data atau gunakan data default...</div>
+    </div>
+    <footer>✅ Klik Copy WA → pesan otomatis dengan sapaan (pagi/siang/sore/malam) + nama bisnis.<br>📞 Copy Phone → salin nomor telepon. Urutan berdasar rating tertinggi ke terendah.</footer>
+</div>
+<div id="toast" class="toast-msg">📋 Tersalin!</div>
+
+<script>
+    // ---------- DATA DEFAULT (dari file asli) ----------
+    const DEFAULT_RAW = `Nama Tempat Bisnis	Katagori	Rating	Jumlah Ulasan	Alamat & Nomor Telepon	Status	Link Situs	Jenis Link	Link Google Maps
+Rumah Sunat Tegal	Klinik Medis	4,9	93	Kabupaten Tegal, Jawa Tengah · 0853-8554-9007	Segera tutup	http://sunattegal.com/	Situs	https://maps.google.com
+Super Khitan Tegal	Klinik Medis	5,0	445	Kabupaten Tegal, Jawa Tengah · 0811-1111-2328	Tutup	https://superkhitan.com/tegal	Situs	https://maps.google.com
+Sunat Safubot Tegal	Pusat Kesehatan Anak	5,0	30	Citraland Boulevard Blk. C No.3 · 0822-1100-2045	Tutup		https://maps.google.com
+Rumah Sunat Di Kota Tegal	Klinik Kesehatan	5,0	9	Jl. Dewi Sartika · 0813-2557-4779	Segera tutup	http://www.rumahsunatkotategal.com/	Situs	https://maps.google.com
+Khitan Besfren	Klinik Kesehatan	5,0	241	Kabupaten Tegal, Jawa Tengah · 0822-2344-3447	Tutup	https://www.besfren.id/	Situs	https://maps.google.com
+Klinik Sunat Modern "SUNATOP 1" TEGAL	Klinik Medis	5,0	14	Kabupaten Tegal, Jawa Tengah · 0813-2657-0388	Tutup	https://sunatmoderntegal.com/	Situs	https://maps.google.com
+Khitan / Sunat Modern dan Konvensional	Klinik Kesehatan	5,0	34	Kabupaten Tegal, Jawa Tengah · 0878-3029-6660	Tutup		https://maps.google.com
+Khitan Center AR-Rohman	Klinik Medis	5,0	44	Jl. Cik Ditiro · 0818-0906-2311			https://maps.google.com
+Rumah Sunat dr. Rifqi (Junior Khitan)	Dokter	5,0	775	Kabupaten Tegal, Jawa Tengah · 0896-0206-1995	Tutup		https://maps.google.com
+Klinik Sunat Modern "SUNATOP 2" Tegal	Klinik Medis	5,0	5	Kabupaten Tegal, Jawa Tengah · 0877-7720-4118	Segera tutup	https://klinikmitrasehattegal.com/	Situs	https://maps.google.com
+SUNAT BEN SAE	Klinik Kesehatan	4,4	31	Kabupaten Tegal, Jawa Tengah · 0856-4277-4676	Segera tutup		https://maps.google.com
+RUMAH KHITAN AL MULTAZAM	Klinik Kesehatan	5,0	1	Kabupaten Tegal, Jawa Tengah · 0857-0194-8974	Buka 24 jam		https://maps.google.com
+Sirkum Smile Indonesia (Tegal Khitan Center)	Klinik Kesehatan	5,0	10	Jl. Kompol Suprapto No.3	Buka 24 jam	http://www.sirkumsmileindonesia.com/	Situs	https://maps.google.com
+Sunat Safubot Magelang	Klinik Medis	5,0	59	Kota Magelang, Jawa Tengah · 0822-8000-4053	Tutup	https://sunatsafubot.com/	Situs	https://maps.google.com
+Rumah Khitan Mantri Prasetyo	Klinik Kesehatan	5,0	1	Jl. Ki Hajar Dewantoro No.9 · 0856-4774-2183	Tutup		https://maps.google.com
+OEMAH SOBAT KHITAN & HOME CARE BREBES	Klinik Medis	5,0	68	Kabupaten Brebes, Jawa Tengah · 0857-4293-0337	Buka 24 jam		https://maps.google.com
+Pusat Khitan Modern Plus Hipnosis Karanganyar	Dokter	5,0	2	Kabupaten Tegal, Jawa Tengah · 0853-8554-9007		https://m.facebook.com/khitanhipno.karanganyar	Situs	https://maps.google.com
+Mantri Khitan (Sunat) Ahmad Soleh	Klinik Kesehatan	5,0	3	Kabupaten Tegal, Jawa Tengah	Segera tutup		https://maps.google.com
+Rumah sunat modern abdul jafar syah	Klinik Medis	5,0	1	44PJ+88R ga, Jl. Kapten Ismail		https://maps.google.com
+RUMAH SUNAT 99	Praktisi perawat	5,0	1	Jl. Cik Ditiro gang trenggalek · 0859-5946-9121	Buka		https://maps.google.com
+Rumah sunat modern al athar	Klinik Medis	5,0	3	Kabupaten Tegal, Jawa Tengah · 0815-6913-720	Segera tutup		https://maps.google.com
+Tempat Khitan BEN SAE H.A ZAENI		5,0	5	Jl. Ki Hajar Dewantoro No.109 · 0819-1201-7244	Buka 24 jam		https://maps.google.com
+RUMAH KHITAN PONOROGO	Klinik Medis	5,0	2	Kabupaten Ponorogo, Jawa Timur · 0852-5954-4830	Buka 24 jam	http://www.infokhitan.com/	Situs	https://maps.google.com
+Jagoan Khitan Ahlinya Sunat dan Bedah Minor	Klinik Medis	5,0	4700	Kota Cirebon, Jawa Barat · 0812-1480-7650	Tutup	https://jagoankhitan.com/	Situs	https://maps.google.com
+Griya Akupunktur, Bekam & Sunat Modern Tegal	Klinik Kesehatan	5,0	10	Jl. Kapt Samadikun · 0858-0326-2441	Tutup		https://maps.google.com`;
+
+    let bisnisData = []; // akan diisi dari import atau default
+
+    // Helper: ekstrak nomor telepon dari string alamat (mencari pola 08xx, 085x, 081x, +62, dll)
+    function extractPhoneNumber(str) {
+        if (!str) return "";
+        const phoneRegex = /(\+62|62|0)[\s-]?8[1-9][\s-]?[0-9\s-]{7,12}/g;
+        const matches = str.match(phoneRegex);
+        if (matches && matches.length) {
+            let raw = matches[0].replace(/\s+/g, '').replace(/-/g, '');
+            if (raw.startsWith('62') && !raw.startsWith('+62')) raw = '+' + raw;
+            if (raw.startsWith('0')) raw = raw;
+            return raw;
+        }
+        const simplePhone = str.match(/(08\d{2,4}[\s-]?\d{3,5}[\s-]?\d{3,5})/);
+        if (simplePhone) return simplePhone[1].replace(/\s/g, '');
+        return "";
+    }
+
+    // parse data teks (tab, koma, atau spasi multi)
+    function parseImportedText(text) {
+        const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+        if (lines.length < 2) return [];
+        // coba deteksi delimiter (tab atau koma)
+        let delimiter = "\t";
+        if (lines[0].includes(",") && !lines[0].includes("\t")) delimiter = ",";
+        const headers = lines[0].split(delimiter).map(h => h.trim().toLowerCase());
+        
+        const nameIdx = headers.findIndex(h => h.includes("nama") || h.includes("tempat") || h === "nama tempat bisnis");
+        const catIdx = headers.findIndex(h => h.includes("kategori") || h.includes("katagori"));
+        const ratingIdx = headers.findIndex(h => h.includes("rating"));
+        const reviewIdx = headers.findIndex(h => h.includes("ulasan") || h.includes("jumlah"));
+        const addressIdx = headers.findIndex(h => h.includes("alamat") || h.includes("telepon"));
+        const websiteIdx = headers.findIndex(h => h.includes("link situs") || h.includes("website") || h === "link situs");
+        
+        const results = [];
+        for (let i = 1; i < lines.length; i++) {
+            const parts = lines[i].split(delimiter);
+            if (parts.length < 2) continue;
+            const rawName = nameIdx >=0 ? parts[nameIdx] : parts[0];
+            const rawCat = catIdx >=0 ? parts[catIdx] : (parts[1] || "");
+            let rawRating = ratingIdx >=0 ? parts[ratingIdx] : (parts[2] || "5.0");
+            let rawReview = reviewIdx >=0 ? parts[reviewIdx] : (parts[3] || "0");
+            let rawAddress = addressIdx >=0 ? parts[addressIdx] : (parts.length>4 ? parts[4] : "");
+            let rawWebsite = websiteIdx >=0 ? parts[websiteIdx] : (parts.length>6 ? parts[6] : "");
+            
+            // jika alamat masih menyatu dengan telepon, ekstrak telepon
+            let phoneNumber = extractPhoneNumber(rawAddress);
+            // jika tidak ketemu, coba di seluruh baris
+            if (!phoneNumber) phoneNumber = extractPhoneNumber(lines[i]);
+            
+            let ratingVal = parseFloat(rawRating.toString().replace(',', '.'));
+            if (isNaN(ratingVal)) ratingVal = 5.0;
+            let reviewVal = parseInt(rawReview.toString().replace(/[^0-9]/g, ''));
+            if (isNaN(reviewVal)) reviewVal = 0;
+            
+            let cleanWebsite = (rawWebsite && rawWebsite !== "-" && rawWebsite.trim() !== "") ? rawWebsite.trim() : "";
+            
+            results.push({
+                nama: rawName.trim(),
+                kategori: rawCat.trim() || "-",
+                rating: ratingVal,
+                ulasan: reviewVal,
+                telepon: phoneNumber,
+                alamat: rawAddress.substring(0, 150),
+                statusText: "",
+                website: cleanWebsite,
+                websiteStatus: null
+            });
+        }
+        return results;
+    }
+
+    // update UI
+    function renderCurrentView() {
+        let filtered = [];
+        const filter = document.querySelector(".filter-btn.active")?.dataset.filter || "all";
+        if (filter === "with_website") filtered = bisnisData.filter(b => b.website && b.website.trim() !== "");
+        else if (filter === "without_website") filtered = bisnisData.filter(b => !b.website || b.website.trim() === "");
+        else filtered = [...bisnisData];
+        
+        const sorted = [...filtered].sort((a,b) => b.rating - a.rating);
+        const container = document.getElementById("mainContent");
+        if (sorted.length === 0) {
+            container.innerHTML = `<div style="background:#fff; border-radius: 32px; padding: 40px; text-align:center;">✨ Tidak ada data untuk filter ini.</div>`;
+            return;
+        }
+        
+        const withWebCount = bisnisData.filter(b => b.website && b.website.trim() !== "").length;
+        const withoutWebCount = bisnisData.length - withWebCount;
+        document.querySelectorAll(".filter-btn").forEach(btn => {
+            if (btn.dataset.filter === "all") btn.innerHTML = `📋 Semua (${bisnisData.length})`;
+            if (btn.dataset.filter === "with_website") btn.innerHTML = `🌐 Punya Website (${withWebCount})`;
+            if (btn.dataset.filter === "without_website") btn.innerHTML = `📄 Tanpa Website (${withoutWebCount})`;
+        });
+        
+        const html = `<div class="card-grid">${sorted.map(biz => {
+            const hasWebsite = biz.website && biz.website.trim() !== "";
+            const statusClass = !hasWebsite ? "" : (biz.websiteStatus === true ? "status-active" : (biz.websiteStatus === false ? "status-inactive" : "status-waiting"));
+            const statusText = !hasWebsite ? "🚫 Tidak ada website" : (biz.websiteStatus === true ? "✅ Aktif" : (biz.websiteStatus === false ? "❌ Tidak aktif" : "⏳ Belum dicek"));
+            const phoneExists = biz.telepon && biz.telepon.trim() !== "";
+            return `<div class="card">
+                <div class="card-header">
+                    <div class="business-name">✂️ ${escapeHtml(biz.nama)}</div>
+                    <div class="rating"><span class="stars">⭐ ${biz.rating}</span><span class="review-count">(${biz.ulasan.toLocaleString()} ulasan)</span><span class="category">${escapeHtml(biz.kategori)}</span></div>
+                </div>
+                <div class="card-body">
+                    <div class="info-row">📍 ${escapeHtml(biz.alamat.substring(0, 80))}</div>
+                    ${phoneExists ? `<div class="info-row">📞 <span class="phone-number">${biz.telepon}</span></div>` : `<div class="info-row">📞 <span style="color:gray;">Nomor tidak tersedia</span></div>`}
+                    ${hasWebsite ? `<div class="info-row">🌐 <span class="website-badge">${escapeHtml(biz.website.substring(0,45))}</span> <span class="status-badge ${statusClass}">${statusText}</span></div>` : `<div class="info-row">🌐 <span class="status-badge status-waiting">🚫 Tidak punya website</span></div>`}
+                    <div class="btn-group">
+                        ${phoneExists ? `<button class="btn-copy-phone" data-phone="${biz.telepon}">📋 Copy Telepon</button>` : `<button disabled style="opacity:0.5;">📋 No Telp</button>`}
+                        ${phoneExists ? `<button class="btn-copy-wa" data-name="${escapeHtml(biz.nama)}" data-phone="${biz.telepon}">💬 Copy WA (salam otomatis)</button>` : `<button disabled>💬 WA Tidak Ada</button>`}
+                    </div>
+                </div>
+            </div>`}).join('')}</div>`;
+        container.innerHTML = html;
+        attachCopyEvents();
+    }
+    
+    function attachCopyEvents() {
+        document.querySelectorAll(".btn-copy-phone").forEach(btn => {
+            btn.addEventListener("click", () => copyToClipboard(btn.getAttribute("data-phone"), "📞 Nomor tersalin!"));
+        });
+        document.querySelectorAll(".btn-copy-wa").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const name = btn.getAttribute("data-name");
+                const phone = btn.getAttribute("data-phone");
+                const hour = new Date().getHours();
+                const greet = hour>=5 && hour<10 ? "Pagi" : (hour>=10 && hour<15 ? "Siang" : (hour>=15 && hour<18 ? "Sore" : "Malam"));
+                const msg = `Selamat ${greet}, dengan tempat khitan ${name}. Apakah masih buka untuk pendaftaran sunat modern? Terima kasih.`;
+                copyToClipboard(msg, "💬 Pesan WA siap tempel!");
+            });
+        });
+    }
+    
+    async function checkWebsiteStatus(url) {
+        if (!url) return false;
+        let target = url.trim();
+        if (!target.startsWith("http")) target = "https://" + target;
+        try {
+            const controller = new AbortController();
+            setTimeout(() => controller.abort(), 5000);
+            await fetch(target, { method: "HEAD", mode: "no-cors", signal: controller.signal });
+            return true;
+        } catch(e) { return false; }
+    }
+    
+    async function updateAllWebsitesStatus() {
+        const statusDiv = document.getElementById("statsStatus");
+        statusDiv.innerHTML = "🔄 Mengecek semua website...";
+        for (let i=0; i<bisnisData.length; i++) {
+            if (bisnisData[i].website && bisnisData[i].website.trim()) {
+                const active = await checkWebsiteStatus(bisnisData[i].website);
+                bisnisData[i].websiteStatus = active;
+            }
+        }
+        statusDiv.innerHTML = "✅ Pengecekan selesai.";
+        renderCurrentView();
+        setTimeout(() => statusDiv.innerHTML = "⚡ Status website tersedia", 2000);
+    }
+    
+    function copyToClipboard(text, msg) {
+        navigator.clipboard.writeText(text);
+        const toast = document.getElementById("toast");
+        toast.textContent = msg;
+        toast.style.opacity = "1";
+        setTimeout(() => toast.style.opacity = "0", 1500);
+    }
+    function escapeHtml(str) { if(!str) return ""; return str.replace(/[&<>]/g, function(m){ return m==='&'?'&amp;':(m==='<'?'&lt;':'&gt;');}); }
+    
+    function loadData(newData) {
+        bisnisData = newData.map(item => ({ ...item, websiteStatus: null }));
+        renderCurrentView();
+        document.getElementById("importFeedback").innerHTML = `✅ Berhasil mengimport ${bisnisData.length} data.`;
+    }
+    
+    document.getElementById("parseDataBtn").addEventListener("click", () => {
+        const rawText = document.getElementById("rawDataInput").value;
+        if (!rawText.trim()) { alert("Harap tempel data terlebih dahulu!"); return; }
+        const parsed = parseImportedText(rawText);
+        if (parsed.length === 0) { alert("Tidak dapat mengenali data. Pastikan format tab/kolom jelas."); return; }
+        loadData(parsed);
+    });
+    document.getElementById("resetToDefaultBtn").addEventListener("click", () => {
+        const defaultParsed = parseImportedText(DEFAULT_RAW);
+        loadData(defaultParsed);
+        document.getElementById("rawDataInput").value = DEFAULT_RAW;
+    });
+    document.getElementById("clearTextareaBtn").addEventListener("click", () => {
+        document.getElementById("rawDataInput").value = "";
+    });
+    document.getElementById("checkAllWebsitesBtn").addEventListener("click", updateAllWebsitesStatus);
+    
+    // init filter event
+    document.querySelectorAll(".filter-btn").forEach(btn => {
+        btn.addEventListener("click", function() {
+            document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+            this.classList.add("active");
+            renderCurrentView();
+        });
+    });
+    
+    // load default pertama kali
+    const initData = parseImportedText(DEFAULT_RAW);
+    loadData(initData);
+    document.getElementById("rawDataInput").value = DEFAULT_RAW;
+</script>
+</body>
+</html>
