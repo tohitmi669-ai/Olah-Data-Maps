@@ -144,7 +144,7 @@
         }
         .card-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
             gap: 20px;
         }
         .card {
@@ -216,6 +216,8 @@
             font-size: 0.7rem;
             font-weight: 600;
             word-break: break-all;
+            max-width: 180px;
+            display: inline-block;
         }
         .status-badge {
             font-size: 0.7rem;
@@ -233,16 +235,20 @@
             margin-top: 12px;
             flex-wrap: wrap;
         }
-        .btn-copy-phone, .btn-copy-wa {
+        .btn-copy-phone, .btn-copy-wa, .btn-copy-website, .btn-visit-website {
             border: none;
             padding: 8px 14px;
             border-radius: 40px;
             font-weight: 600;
             font-size: 0.75rem;
             cursor: pointer;
+            transition: 0.2s;
         }
         .btn-copy-phone { background: #eef2ff; color: #1f3a7a; border: 1px solid #cdd9ff; }
         .btn-copy-wa { background: #25D36620; color: #075e54; border: 1px solid #25D36680; }
+        .btn-copy-website { background: #f0e6ff; color: #4a2e6b; border: 1px solid #d4c2ff; }
+        .btn-visit-website { background: #ffefe5; color: #b45f1b; border: 1px solid #ffd4b3; }
+        .btn-copy-website:hover, .btn-visit-website:hover { filter: brightness(0.96); }
         .toast-msg {
             position: fixed;
             bottom: 25px;
@@ -305,7 +311,7 @@
     <div id="mainContent">
         <div style="text-align: center; padding: 40px;">⏳ Silakan import data atau gunakan data default...</div>
     </div>
-    <footer>✅ Klik Copy WA → pesan otomatis dengan sapaan (pagi/siang/sore/malam) + nama bisnis.<br>📞 Copy Phone → salin nomor telepon. Urutan berdasar rating tertinggi ke terendah.</footer>
+    <footer>✅ Klik Copy WA → pesan otomatis dengan sapaan (pagi/siang/sore/malam) + nama bisnis.<br>📞 Copy Phone → salin nomor telepon. 🌐 Copy URL / Visit Website untuk akses cepat.</footer>
 </div>
 <div id="toast" class="toast-msg">📋 Tersalin!</div>
 
@@ -438,6 +444,10 @@ Griya Akupunktur, Bekam & Sunat Modern Tegal	Klinik Kesehatan	5,0	10	Jl. Kapt Sa
             const statusClass = !hasWebsite ? "" : (biz.websiteStatus === true ? "status-active" : (biz.websiteStatus === false ? "status-inactive" : "status-waiting"));
             const statusText = !hasWebsite ? "🚫 Tidak ada website" : (biz.websiteStatus === true ? "✅ Aktif" : (biz.websiteStatus === false ? "❌ Tidak aktif" : "⏳ Belum dicek"));
             const phoneExists = biz.telepon && biz.telepon.trim() !== "";
+            const websiteUrl = hasWebsite ? biz.website : "";
+            // Pastikan URL lengkap untuk tombol visit
+            const fullUrl = websiteUrl && !websiteUrl.startsWith('http') ? 'https://' + websiteUrl : websiteUrl;
+            
             return `<div class="card">
                 <div class="card-header">
                     <div class="business-name">✂️ ${escapeHtml(biz.nama)}</div>
@@ -446,7 +456,19 @@ Griya Akupunktur, Bekam & Sunat Modern Tegal	Klinik Kesehatan	5,0	10	Jl. Kapt Sa
                 <div class="card-body">
                     <div class="info-row">📍 ${escapeHtml(biz.alamat.substring(0, 80))}</div>
                     ${phoneExists ? `<div class="info-row">📞 <span class="phone-number">${biz.telepon}</span></div>` : `<div class="info-row">📞 <span style="color:gray;">Nomor tidak tersedia</span></div>`}
-                    ${hasWebsite ? `<div class="info-row">🌐 <span class="website-badge">${escapeHtml(biz.website.substring(0,45))}</span> <span class="status-badge ${statusClass}">${statusText}</span></div>` : `<div class="info-row">🌐 <span class="status-badge status-waiting">🚫 Tidak punya website</span></div>`}
+                    <div class="info-row" style="flex-wrap: wrap; gap: 8px;">
+                        ${hasWebsite ? 
+                            `<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; width: 100%;">
+                                <span class="website-badge">${escapeHtml(biz.website.substring(0,45))}</span>
+                                <span class="status-badge ${statusClass}">${statusText}</span>
+                                <div style="display: flex; gap: 6px; margin-left: auto;">
+                                    <button class="btn-copy-website" data-url="${escapeHtml(biz.website)}" title="Salin URL Website">🔗 Copy URL</button>
+                                    <button class="btn-visit-website" data-url="${escapeHtml(fullUrl)}" title="Buka Website">🌐 Visit</button>
+                                </div>
+                            </div>` 
+                            : `<span class="status-badge status-waiting">🚫 Tidak punya website</span>`
+                        }
+                    </div>
                     <div class="btn-group">
                         ${phoneExists ? `<button class="btn-copy-phone" data-phone="${biz.telepon}">📋 Copy Telepon</button>` : `<button disabled style="opacity:0.5;">📋 No Telp</button>`}
                         ${phoneExists ? `<button class="btn-copy-wa" data-name="${escapeHtml(biz.nama)}" data-phone="${biz.telepon}">💬 Copy WA (salam otomatis)</button>` : `<button disabled>💬 WA Tidak Ada</button>`}
@@ -455,6 +477,33 @@ Griya Akupunktur, Bekam & Sunat Modern Tegal	Klinik Kesehatan	5,0	10	Jl. Kapt Sa
             </div>`}).join('')}</div>`;
         container.innerHTML = html;
         attachCopyEvents();
+        attachWebsiteEvents();
+    }
+    
+    // Event untuk tombol Copy URL dan Visit Website
+    function attachWebsiteEvents() {
+        // Tombol Copy URL Website
+        document.querySelectorAll(".btn-copy-website").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const url = btn.getAttribute("data-url");
+                if (url) copyToClipboard(url, "🔗 URL Website tersalin!");
+                else copyToClipboard("", "Tidak ada URL");
+            });
+        });
+        // Tombol Visit Website
+        document.querySelectorAll(".btn-visit-website").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                let url = btn.getAttribute("data-url");
+                if (url) {
+                    if (!url.startsWith('http')) url = 'https://' + url;
+                    window.open(url, '_blank', 'noopener,noreferrer');
+                } else {
+                    copyToClipboard("", "URL tidak valid");
+                }
+            });
+        });
     }
     
     function attachCopyEvents() {
