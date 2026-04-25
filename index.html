@@ -510,16 +510,24 @@ Griya Akupunktur, Bekam & Sunat Modern Tegal	Klinik Kesehatan	5,0	10	Jl. Kapt Sa
         document.querySelectorAll(".btn-copy-phone").forEach(btn => {
             btn.addEventListener("click", () => copyToClipboard(btn.getAttribute("data-phone"), "📞 Nomor tersalin!"));
         });
+        // ========== PERUBAHAN HANYA DI FUNGSI COPY WA ==========
+        // Format pesan diubah menjadi: "Selamat (real waktu), dengan tempat khitan (nama tempat khitan)."
         document.querySelectorAll(".btn-copy-wa").forEach(btn => {
             btn.addEventListener("click", () => {
                 const name = btn.getAttribute("data-name");
                 const phone = btn.getAttribute("data-phone");
                 const hour = new Date().getHours();
-                const greet = hour>=5 && hour<10 ? "Pagi" : (hour>=10 && hour<15 ? "Siang" : (hour>=15 && hour<18 ? "Sore" : "Malam"));
-                const msg = `Selamat ${greet}, dengan tempat khitan ${name};
+                let greet = "";
+                if (hour >= 5 && hour < 10) greet = "Pagi";
+                else if (hour >= 10 && hour < 15) greet = "Siang";
+                else if (hour >= 15 && hour < 18) greet = "Sore";
+                else greet = "Malam";
+                // Format pesan baru sesuai permintaan
+                const msg = `Selamat ${greet}, dengan tempat khitan ${name}.`;
                 copyToClipboard(msg, "💬 Pesan WA siap tempel!");
             });
         });
+        // ========== AKHIR PERUBAHAN ==========
     }
     
     async function checkWebsiteStatus(url) {
