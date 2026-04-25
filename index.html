@@ -516,7 +516,7 @@ Griya Akupunktur, Bekam & Sunat Modern Tegal	Klinik Kesehatan	5,0	10	Jl. Kapt Sa
                 const phone = btn.getAttribute("data-phone");
                 const hour = new Date().getHours();
                 const greet = hour>=5 && hour<10 ? "Pagi" : (hour>=10 && hour<15 ? "Siang" : (hour>=15 && hour<18 ? "Sore" : "Malam"));
-                const msg = `Selamat ${greet}, dengan tempat khitan ${name}. Apakah masih buka untuk pendaftaran sunat modern? Terima kasih.`;
+                const msg = `Selamat ${greet}, dengan tempat khitan ${name};
                 copyToClipboard(msg, "💬 Pesan WA siap tempel!");
             });
         });
