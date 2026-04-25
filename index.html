@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>🧸 Khitan Tools Pro - Filter, Cek Website, Copy WA + Import Data</title>
+    <title>🧸 Khitan Tools Pro - Filter, Cek Website, Copy WA + Import Data + Edit Custom WA</title>
     <style>
         * {
             box-sizing: border-box;
@@ -142,6 +142,37 @@
             border-radius: 30px;
             font-size: 0.85rem;
         }
+        .edit-wa-section {
+            background: #fff7e5;
+            border-radius: 28px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            border: 1px solid #f5e2b0;
+        }
+        .edit-wa-label {
+            font-weight: 600;
+            color: #a66b0e;
+        }
+        .edit-wa-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 8px 16px;
+            border-radius: 40px;
+            border: 1px solid #f0d48a;
+            background: #fffef7;
+            font-weight: 500;
+        }
+        .edit-wa-preview {
+            font-size: 0.8rem;
+            background: #eef3ee;
+            padding: 4px 12px;
+            border-radius: 30px;
+            color: #3c6e3c;
+        }
         .card-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
@@ -278,7 +309,7 @@
 </head>
 <body>
 <div class="container">
-    <h1>✂️ Khitan Tool Pro + Import Data <span style="font-size: 0.9rem;">📍 Filter, Cek Website, Copy WA</span></h1>
+    <h1>✂️ Khitan Tool Pro + Import Data <span style="font-size: 0.9rem;">📍 Filter, Cek Website, Copy WA + Custom Teks</span></h1>
     <div class="sub">📥 Tempelkan data mentah (CSV / tab / teks apapun) lalu klik "Proses Data" — tools akan otomatis mengenali kolom nama, rating, telepon, website, dll.</div>
 
     <!-- BOX IMPORT DATA -->
@@ -296,6 +327,13 @@
         <div id="importFeedback" style="font-size:12px; margin-top:10px; color:#2c6e2c;"></div>
     </div>
 
+    <!-- FITUR EDIT TEKS CUSTOM WA YANG DITAMBAHKAN -->
+    <div class="edit-wa-section">
+        <span class="edit-wa-label">✏️ Edit custom teks WA:</span>
+        <input type="text" id="customWAText" class="edit-wa-input" value="tempat khitan" placeholder="contoh: rental mobil, klinik, tempat sunat">
+        <span class="edit-wa-preview" id="previewWAFormat">➡️ Contoh: "Selamat Siang, dengan rental mobil Rumah Sunat Tegal."</span>
+    </div>
+
     <div class="toolbar">
         <div class="filter-group" id="filterButtonsContainer">
             <button class="filter-btn active" data-filter="all">📋 Semua (0)</button>
@@ -311,7 +349,7 @@
     <div id="mainContent">
         <div style="text-align: center; padding: 40px;">⏳ Silakan import data atau gunakan data default...</div>
     </div>
-    <footer>✅ Klik Copy WA → pesan otomatis dengan sapaan (pagi/siang/sore/malam) + nama bisnis.<br>📞 Copy Phone → salin nomor telepon. 🌐 Copy URL / Visit Website untuk akses cepat.</footer>
+    <footer>✅ Klik Copy WA → pesan otomatis sesuai teks custom (bisa diubah) + sapaan + nama bisnis.<br>📞 Copy Phone → salin nomor telepon. 🌐 Copy URL / Visit Website untuk akses cepat.</footer>
 </div>
 <div id="toast" class="toast-msg">📋 Tersalin!</div>
 
@@ -445,7 +483,6 @@ Griya Akupunktur, Bekam & Sunat Modern Tegal	Klinik Kesehatan	5,0	10	Jl. Kapt Sa
             const statusText = !hasWebsite ? "🚫 Tidak ada website" : (biz.websiteStatus === true ? "✅ Aktif" : (biz.websiteStatus === false ? "❌ Tidak aktif" : "⏳ Belum dicek"));
             const phoneExists = biz.telepon && biz.telepon.trim() !== "";
             const websiteUrl = hasWebsite ? biz.website : "";
-            // Pastikan URL lengkap untuk tombol visit
             const fullUrl = websiteUrl && !websiteUrl.startsWith('http') ? 'https://' + websiteUrl : websiteUrl;
             
             return `<div class="card">
@@ -478,11 +515,11 @@ Griya Akupunktur, Bekam & Sunat Modern Tegal	Klinik Kesehatan	5,0	10	Jl. Kapt Sa
         container.innerHTML = html;
         attachCopyEvents();
         attachWebsiteEvents();
+        updatePreviewWA();
     }
     
     // Event untuk tombol Copy URL dan Visit Website
     function attachWebsiteEvents() {
-        // Tombol Copy URL Website
         document.querySelectorAll(".btn-copy-website").forEach(btn => {
             btn.addEventListener("click", (e) => {
                 e.stopPropagation();
@@ -491,7 +528,6 @@ Griya Akupunktur, Bekam & Sunat Modern Tegal	Klinik Kesehatan	5,0	10	Jl. Kapt Sa
                 else copyToClipboard("", "Tidak ada URL");
             });
         });
-        // Tombol Visit Website
         document.querySelectorAll(".btn-visit-website").forEach(btn => {
             btn.addEventListener("click", (e) => {
                 e.stopPropagation();
@@ -506,12 +542,36 @@ Griya Akupunktur, Bekam & Sunat Modern Tegal	Klinik Kesehatan	5,0	10	Jl. Kapt Sa
         });
     }
     
+    // Fungsi baru: Mendapatkan teks kustom dari input
+    function getCustomWAPhrase() {
+        const inputField = document.getElementById("customWAText");
+        if (inputField && inputField.value.trim() !== "") {
+            return inputField.value.trim();
+        }
+        return "tempat khitan"; // default
+    }
+    
+    // Preview teks WA yang akan dihasilkan (update di bagian edit bar)
+    function updatePreviewWA() {
+        const previewSpan = document.getElementById("previewWAFormat");
+        if (previewSpan) {
+            const customPhrase = getCustomWAPhrase();
+            const hour = new Date().getHours();
+            let greet = "";
+            if (hour >= 5 && hour < 10) greet = "Pagi";
+            else if (hour >= 10 && hour < 15) greet = "Siang";
+            else if (hour >= 15 && hour < 18) greet = "Sore";
+            else greet = "Malam";
+            previewSpan.innerHTML = `➡️ Contoh: "Selamat ${greet}, dengan ${customPhrase} Rumah Sunat Tegal."`;
+        }
+    }
+    
     function attachCopyEvents() {
         document.querySelectorAll(".btn-copy-phone").forEach(btn => {
             btn.addEventListener("click", () => copyToClipboard(btn.getAttribute("data-phone"), "📞 Nomor tersalin!"));
         });
-        // ========== PERUBAHAN HANYA DI FUNGSI COPY WA ==========
-        // Format pesan diubah menjadi: "Selamat (real waktu), dengan tempat khitan (nama tempat khitan)."
+        
+        // ========== PERUBAHAN UTAMA: FUNGSI COPY WA DENGAN TEKS CUSTOM ==========
         document.querySelectorAll(".btn-copy-wa").forEach(btn => {
             btn.addEventListener("click", () => {
                 const name = btn.getAttribute("data-name");
@@ -522,9 +582,13 @@ Griya Akupunktur, Bekam & Sunat Modern Tegal	Klinik Kesehatan	5,0	10	Jl. Kapt Sa
                 else if (hour >= 10 && hour < 15) greet = "Siang";
                 else if (hour >= 15 && hour < 18) greet = "Sore";
                 else greet = "Malam";
-                // Format pesan baru sesuai permintaan
-                const msg = `Selamat ${greet}, dengan tempat khitan ${name}.`;
-                copyToClipboard(msg, "💬 Pesan WA siap tempel!");
+                
+                // Ambil teks custom dari input (misal: "rental mobil", "tempat khitan", dll)
+                const customPhrase = getCustomWAPhrase();
+                
+                // Format pesan baru: "Selamat {salam}, dengan {customPhrase} {nama_bisnis}."
+                const msg = `Selamat ${greet}, dengan ${customPhrase} ${name}.`;
+                copyToClipboard(msg, "💬 Pesan WA (custom) siap tempel!");
             });
         });
         // ========== AKHIR PERUBAHAN ==========
@@ -571,6 +635,20 @@ Griya Akupunktur, Bekam & Sunat Modern Tegal	Klinik Kesehatan	5,0	10	Jl. Kapt Sa
         document.getElementById("importFeedback").innerHTML = `✅ Berhasil mengimport ${bisnisData.length} data.`;
     }
     
+    // Event listener untuk input custom WA agar preview berubah dan jika sudah render ulang tidak perlu, tapi biar preview langsung update
+    function initCustomWAEvents() {
+        const customInput = document.getElementById("customWAText");
+        if (customInput) {
+            customInput.addEventListener("input", function() {
+                updatePreviewWA();
+                // Karena pesan WA di setiap tombol akan mengambil nilai terbaru saat diklik,
+                // kita tidak perlu render ulang semua card. Cukup update preview.
+                // Tapi jika ingin tombol yang sudah ada tetap sinkron, karena sudah pakai getCustomWAPhrase() di event listener,
+                // maka setiap klik akan mengambil nilai terkini, jadi tidak perlu render ulang.
+            });
+        }
+    }
+    
     document.getElementById("parseDataBtn").addEventListener("click", () => {
         const rawText = document.getElementById("rawDataInput").value;
         if (!rawText.trim()) { alert("Harap tempel data terlebih dahulu!"); return; }
@@ -601,6 +679,10 @@ Griya Akupunktur, Bekam & Sunat Modern Tegal	Klinik Kesehatan	5,0	10	Jl. Kapt Sa
     const initData = parseImportedText(DEFAULT_RAW);
     loadData(initData);
     document.getElementById("rawDataInput").value = DEFAULT_RAW;
+    
+    // Aktifkan event custom WA & preview
+    initCustomWAEvents();
+    updatePreviewWA();
 </script>
 </body>
 </html>
