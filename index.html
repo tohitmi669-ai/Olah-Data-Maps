@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>🧸 Khitan Tools Pro - Filter, Cek Website, Copy WA + Import Data + Edit Custom WA</title>
+    <title>🧸 Khitan Tools Pro - Fixed Import + Cek Website + Custom WA</title>
     <style>
         * {
             box-sizing: border-box;
@@ -33,7 +33,6 @@
             border-left: 4px solid #3c9e3c;
             padding-left: 15px;
         }
-        /* import box */
         .import-section {
             background: white;
             border-radius: 28px;
@@ -279,7 +278,7 @@
         .btn-copy-wa { background: #25D36620; color: #075e54; border: 1px solid #25D36680; }
         .btn-copy-website { background: #f0e6ff; color: #4a2e6b; border: 1px solid #d4c2ff; }
         .btn-visit-website { background: #ffefe5; color: #b45f1b; border: 1px solid #ffd4b3; }
-        .btn-copy-website:hover, .btn-visit-website:hover { filter: brightness(0.96); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .toast-msg {
             position: fixed;
             bottom: 25px;
@@ -301,6 +300,17 @@
             font-size: 0.7rem;
             color: #5f735a;
         }
+        .loader {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.6s linear infinite;
+            margin-right: 6px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 640px) {
             .card-grid { grid-template-columns: 1fr; }
             .toolbar { flex-direction: column; align-items: stretch; }
@@ -312,13 +322,12 @@
     <h1>✂️ Khitan Tool Pro + Import Data <span style="font-size: 0.9rem;">📍 Filter, Cek Website, Copy WA + Custom Teks</span></h1>
     <div class="sub">📥 Tempelkan data mentah (CSV / tab / teks apapun) lalu klik "Proses Data" — tools akan otomatis mengenali kolom nama, rating, telepon, website, dll.</div>
 
-    <!-- BOX IMPORT DATA -->
     <div class="import-section">
         <div class="import-header">
             <span>📋 <strong>Data Mentah (copy dari excel, google sheets, atau teks tabular)</strong></span>
             <span style="font-size:12px; color:gray;">Format bebas, sistem akan coba parse otomatis</span>
         </div>
-        <textarea id="rawDataInput" rows="5" class="import-textarea" placeholder="Contoh data (bisa langsung tempel dari file Anda):&#10;Nama Tempat Bisnis	Katagori	Rating	Jumlah Ulasan	Alamat & Nomor Telepon	Status	Link Situs&#10;Rumah Sunat Tegal	Klinik Medis	4,9	93	Kabupaten Tegal, 0853-8554-9007	Segera tutup	http://sunattegal.com/&#10;Super Khitan Tegal	Klinik Medis	5,0	445	Kabupaten Tegal, 0811-1111-2328	Tutup	https://superkhitan.com/tegal"></textarea>
+        <textarea id="rawDataInput" rows="6" class="import-textarea" placeholder="Tempel data Anda di sini..."></textarea>
         <div class="button-group">
             <button id="parseDataBtn" class="btn-primary">📊 Proses & Import Data</button>
             <button id="resetToDefaultBtn" class="btn-secondary">↺ Reset ke Data Default</button>
@@ -327,11 +336,10 @@
         <div id="importFeedback" style="font-size:12px; margin-top:10px; color:#2c6e2c;"></div>
     </div>
 
-    <!-- FITUR EDIT TEKS CUSTOM WA YANG DITAMBAHKAN -->
     <div class="edit-wa-section">
         <span class="edit-wa-label">✏️ Edit custom teks WA:</span>
         <input type="text" id="customWAText" class="edit-wa-input" value="tempat khitan" placeholder="contoh: rental mobil, klinik, tempat sunat">
-        <span class="edit-wa-preview" id="previewWAFormat">➡️ Contoh: "Selamat Siang, dengan rental mobil Rumah Sunat Tegal."</span>
+        <span class="edit-wa-preview" id="previewWAFormat">➡️ Contoh: "Selamat Siang, dengan tempat khitan Rumah Sunat Tegal."</span>
     </div>
 
     <div class="toolbar">
@@ -357,91 +365,121 @@
     // ---------- DATA DEFAULT (dari file asli) ----------
     const DEFAULT_RAW = `Nama Tempat Bisnis	Katagori	Rating	Jumlah Ulasan	Alamat & Nomor Telepon	Status	Link Situs	Jenis Link	Link Google Maps
 Rumah Sunat Tegal	Klinik Medis	4,9	93	Kabupaten Tegal, Jawa Tengah · 0853-8554-9007	Segera tutup	http://sunattegal.com/	Situs	https://maps.google.com
-Super Khitan Tegal	Klinik Medis	5,0	445	Kabupaten Tegal, Jawa Tengah · 0811-1111-2328	Tutup	https://superkhitan.com/tegal	Situs	https://maps.google.com
-Sunat Safubot Tegal	Pusat Kesehatan Anak	5,0	30	Citraland Boulevard Blk. C No.3 · 0822-1100-2045	Tutup		https://maps.google.com
-Rumah Sunat Di Kota Tegal	Klinik Kesehatan	5,0	9	Jl. Dewi Sartika · 0813-2557-4779	Segera tutup	http://www.rumahsunatkotategal.com/	Situs	https://maps.google.com
-Khitan Besfren	Klinik Kesehatan	5,0	241	Kabupaten Tegal, Jawa Tengah · 0822-2344-3447	Tutup	https://www.besfren.id/	Situs	https://maps.google.com
-Klinik Sunat Modern "SUNATOP 1" TEGAL	Klinik Medis	5,0	14	Kabupaten Tegal, Jawa Tengah · 0813-2657-0388	Tutup	https://sunatmoderntegal.com/	Situs	https://maps.google.com
-Khitan / Sunat Modern dan Konvensional	Klinik Kesehatan	5,0	34	Kabupaten Tegal, Jawa Tengah · 0878-3029-6660	Tutup		https://maps.google.com
-Khitan Center AR-Rohman	Klinik Medis	5,0	44	Jl. Cik Ditiro · 0818-0906-2311			https://maps.google.com
-Rumah Sunat dr. Rifqi (Junior Khitan)	Dokter	5,0	775	Kabupaten Tegal, Jawa Tengah · 0896-0206-1995	Tutup		https://maps.google.com
-Klinik Sunat Modern "SUNATOP 2" Tegal	Klinik Medis	5,0	5	Kabupaten Tegal, Jawa Tengah · 0877-7720-4118	Segera tutup	https://klinikmitrasehattegal.com/	Situs	https://maps.google.com
-SUNAT BEN SAE	Klinik Kesehatan	4,4	31	Kabupaten Tegal, Jawa Tengah · 0856-4277-4676	Segera tutup		https://maps.google.com
-RUMAH KHITAN AL MULTAZAM	Klinik Kesehatan	5,0	1	Kabupaten Tegal, Jawa Tengah · 0857-0194-8974	Buka 24 jam		https://maps.google.com
-Sirkum Smile Indonesia (Tegal Khitan Center)	Klinik Kesehatan	5,0	10	Jl. Kompol Suprapto No.3	Buka 24 jam	http://www.sirkumsmileindonesia.com/	Situs	https://maps.google.com
-Sunat Safubot Magelang	Klinik Medis	5,0	59	Kota Magelang, Jawa Tengah · 0822-8000-4053	Tutup	https://sunatsafubot.com/	Situs	https://maps.google.com
-Rumah Khitan Mantri Prasetyo	Klinik Kesehatan	5,0	1	Jl. Ki Hajar Dewantoro No.9 · 0856-4774-2183	Tutup		https://maps.google.com
-OEMAH SOBAT KHITAN & HOME CARE BREBES	Klinik Medis	5,0	68	Kabupaten Brebes, Jawa Tengah · 0857-4293-0337	Buka 24 jam		https://maps.google.com
-Pusat Khitan Modern Plus Hipnosis Karanganyar	Dokter	5,0	2	Kabupaten Tegal, Jawa Tengah · 0853-8554-9007		https://m.facebook.com/khitanhipno.karanganyar	Situs	https://maps.google.com
-Mantri Khitan (Sunat) Ahmad Soleh	Klinik Kesehatan	5,0	3	Kabupaten Tegal, Jawa Tengah	Segera tutup		https://maps.google.com
-Rumah sunat modern abdul jafar syah	Klinik Medis	5,0	1	44PJ+88R ga, Jl. Kapten Ismail		https://maps.google.com
-RUMAH SUNAT 99	Praktisi perawat	5,0	1	Jl. Cik Ditiro gang trenggalek · 0859-5946-9121	Buka		https://maps.google.com
-Rumah sunat modern al athar	Klinik Medis	5,0	3	Kabupaten Tegal, Jawa Tengah · 0815-6913-720	Segera tutup		https://maps.google.com
-Tempat Khitan BEN SAE H.A ZAENI		5,0	5	Jl. Ki Hajar Dewantoro No.109 · 0819-1201-7244	Buka 24 jam		https://maps.google.com
-RUMAH KHITAN PONOROGO	Klinik Medis	5,0	2	Kabupaten Ponorogo, Jawa Timur · 0852-5954-4830	Buka 24 jam	http://www.infokhitan.com/	Situs	https://maps.google.com
-Jagoan Khitan Ahlinya Sunat dan Bedah Minor	Klinik Medis	5,0	4700	Kota Cirebon, Jawa Barat · 0812-1480-7650	Tutup	https://jagoankhitan.com/	Situs	https://maps.google.com
-Griya Akupunktur, Bekam & Sunat Modern Tegal	Klinik Kesehatan	5,0	10	Jl. Kapt Samadikun · 0858-0326-2441	Tutup		https://maps.google.com`;
+Super Khitan Tegal	Klinik Medis	5,0	445	Kabupaten Tegal, Jawa Tengah · 0811-1111-2328	Tutup	https://superkhitan.com/tegal	Situs	https://maps.google.com`;
 
-    let bisnisData = []; // akan diisi dari import atau default
+    let bisnisData = [];
 
-    // Helper: ekstrak nomor telepon dari string alamat (mencari pola 08xx, 085x, 081x, +62, dll)
+    // ========== UTILITIES ==========
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    function escapeAttr(str) {
+        if (!str) return "";
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // Ekstrak nomor telepon yang lebih kuat
     function extractPhoneNumber(str) {
         if (!str) return "";
-        const phoneRegex = /(\+62|62|0)[\s-]?8[1-9][\s-]?[0-9\s-]{7,12}/g;
-        const matches = str.match(phoneRegex);
-        if (matches && matches.length) {
-            let raw = matches[0].replace(/\s+/g, '').replace(/-/g, '');
-            if (raw.startsWith('62') && !raw.startsWith('+62')) raw = '+' + raw;
-            if (raw.startsWith('0')) raw = raw;
-            return raw;
+        // Hapus karakter aneh, pertahankan angka, spasi, tanda hubung, plus
+        let clean = str.replace(/\s+/g, ' ').replace(/[^\d\s\+\(\)\-]/g, '');
+        // Pola: 08xx, +62, (0293) etc
+        const patterns = [
+            /(\+62|62|0)[\s-]?8[1-9][\s-]?[0-9\s-]{7,12}/g,
+            /08[0-9]{2,4}[\s-]?[0-9]{3,5}[\s-]?[0-9]{3,5}/g,
+            /\(\d{3,4}\)[\s-]?\d{3,4}[\s-]?\d{3,4}/g,  // (0293) 362990
+            /0[0-9]{2,3}[\s-]?[0-9]{3,4}[\s-]?[0-9]{3,4}/g
+        ];
+        for (let pattern of patterns) {
+            const match = clean.match(pattern);
+            if (match && match.length) {
+                let phone = match[0].replace(/\s+/g, '').replace(/-/g, '');
+                if (phone.startsWith('62') && !phone.startsWith('+62')) phone = '+' + phone;
+                return phone;
+            }
         }
-        const simplePhone = str.match(/(08\d{2,4}[\s-]?\d{3,5}[\s-]?\d{3,5})/);
-        if (simplePhone) return simplePhone[1].replace(/\s/g, '');
         return "";
     }
 
-    // parse data teks (tab, koma, atau spasi multi)
+    // ========== PARSING DATA YANG LEBIH ROBUST ==========
     function parseImportedText(text) {
         const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
-        if (lines.length < 2) return [];
-        // coba deteksi delimiter (tab atau koma)
-        let delimiter = "\t";
-        if (lines[0].includes(",") && !lines[0].includes("\t")) delimiter = ",";
-        const headers = lines[0].split(delimiter).map(h => h.trim().toLowerCase());
+        if (lines.length < 2) {
+            return { success: false, message: "Data minimal harus memiliki baris header + 1 baris data." };
+        }
         
-        const nameIdx = headers.findIndex(h => h.includes("nama") || h.includes("tempat") || h === "nama tempat bisnis");
+        // Deteksi delimiter: hitung jumlah tab vs koma di baris pertama
+        let delimiter = "\t";
+        const firstLine = lines[0];
+        const tabCount = (firstLine.match(/\t/g) || []).length;
+        const commaCount = (firstLine.match(/,/g) || []).length;
+        if (tabCount === 0 && commaCount > 0) delimiter = ",";
+        else if (tabCount > 0) delimiter = "\t";
+        
+        // Bersihkan header: trim, hapus karakter non-breaking space (\u00A0) dan spasi aneh
+        const rawHeaders = lines[0].split(delimiter);
+        const headers = rawHeaders.map(h => h.trim().replace(/\u00A0/g, ' ').toLowerCase());
+        
+        // Cari indeks kolom berdasarkan kata kunci (lebih fleksibel)
+        const nameIdx = headers.findIndex(h => h.includes("nama") || h.includes("tempat bisnis") || h === "nama tempat bisnis");
         const catIdx = headers.findIndex(h => h.includes("kategori") || h.includes("katagori"));
         const ratingIdx = headers.findIndex(h => h.includes("rating"));
-        const reviewIdx = headers.findIndex(h => h.includes("ulasan") || h.includes("jumlah"));
-        const addressIdx = headers.findIndex(h => h.includes("alamat") || h.includes("telepon"));
-        const websiteIdx = headers.findIndex(h => h.includes("link situs") || h.includes("website") || h === "link situs");
+        const reviewIdx = headers.findIndex(h => h.includes("ulasan") || h.includes("jumlah ulasan"));
+        const addressIdx = headers.findIndex(h => h.includes("alamat") || h.includes("telepon") || h === "alamat & nomor telepon");
+        const websiteIdx = headers.findIndex(h => h.includes("link situs") || h.includes("website"));
+        
+        if (nameIdx === -1) {
+            return { success: false, message: "Tidak menemukan kolom 'Nama' atau 'Tempat Bisnis'. Periksa header." };
+        }
         
         const results = [];
+        let skipped = 0;
         for (let i = 1; i < lines.length; i++) {
-            const parts = lines[i].split(delimiter);
-            if (parts.length < 2) continue;
-            const rawName = nameIdx >=0 ? parts[nameIdx] : parts[0];
-            const rawCat = catIdx >=0 ? parts[catIdx] : (parts[1] || "");
-            let rawRating = ratingIdx >=0 ? parts[ratingIdx] : (parts[2] || "5.0");
-            let rawReview = reviewIdx >=0 ? parts[reviewIdx] : (parts[3] || "0");
-            let rawAddress = addressIdx >=0 ? parts[addressIdx] : (parts.length>4 ? parts[4] : "");
-            let rawWebsite = websiteIdx >=0 ? parts[websiteIdx] : (parts.length>6 ? parts[6] : "");
+            const line = lines[i];
+            if (!line.trim()) continue;
+            const parts = line.split(delimiter);
             
-            // jika alamat masih menyatu dengan telepon, ekstrak telepon
-            let phoneNumber = extractPhoneNumber(rawAddress);
-            // jika tidak ketemu, coba di seluruh baris
-            if (!phoneNumber) phoneNumber = extractPhoneNumber(lines[i]);
+            // Jika jumlah parts kurang dari header, coba gabung sisa? Untuk safety, skip
+            if (parts.length < Math.max(nameIdx, catIdx, ratingIdx, addressIdx) + 1) {
+                skipped++;
+                continue;
+            }
             
-            let ratingVal = parseFloat(rawRating.toString().replace(',', '.'));
+            const rawName = (nameIdx >= 0 && parts[nameIdx]) ? parts[nameIdx].trim() : `Data ke-${i}`;
+            const rawCat = (catIdx >= 0 && parts[catIdx]) ? parts[catIdx].trim() : "-";
+            let rawRating = (ratingIdx >= 0 && parts[ratingIdx]) ? parts[ratingIdx].trim() : "5.0";
+            let rawReview = (reviewIdx >= 0 && parts[reviewIdx]) ? parts[reviewIdx].trim() : "0";
+            let rawAddress = (addressIdx >= 0 && parts[addressIdx]) ? parts[addressIdx].trim() : "";
+            let rawWebsite = (websiteIdx >= 0 && parts[websiteIdx]) ? parts[websiteIdx].trim() : "";
+            
+            // Bersihkan rating dan ulasan dari karakter non-digit
+            let ratingVal = parseFloat(rawRating.toString().replace(',', '.').replace(/[^0-9.,]/g, ''));
             if (isNaN(ratingVal)) ratingVal = 5.0;
             let reviewVal = parseInt(rawReview.toString().replace(/[^0-9]/g, ''));
             if (isNaN(reviewVal)) reviewVal = 0;
             
-            let cleanWebsite = (rawWebsite && rawWebsite !== "-" && rawWebsite.trim() !== "") ? rawWebsite.trim() : "";
+            // Ekstrak telepon: coba dari alamat dulu, lalu dari seluruh baris
+            let phoneNumber = extractPhoneNumber(rawAddress);
+            if (!phoneNumber) phoneNumber = extractPhoneNumber(line);
+            
+            // Jika masih kosong, coba regex tambahan untuk nomor dengan spasi
+            if (!phoneNumber) {
+                const fallbackMatch = line.match(/08[0-9]{2,4}[-\s]?[0-9]{3,5}[-\s]?[0-9]{3,5}/);
+                if (fallbackMatch) phoneNumber = fallbackMatch[0].replace(/\s+/g, '').replace(/-/g, '');
+            }
+            
+            let cleanWebsite = (rawWebsite && rawWebsite !== "-" && rawWebsite.trim() !== "" && !rawWebsite.includes("maps.google.com") && !rawWebsite.includes("lh3.googleusercontent")) ? rawWebsite.trim() : "";
             
             results.push({
-                nama: rawName.trim(),
-                kategori: rawCat.trim() || "-",
+                nama: rawName,
+                kategori: rawCat,
                 rating: ratingVal,
                 ulasan: reviewVal,
                 telepon: phoneNumber,
@@ -451,10 +489,56 @@ Griya Akupunktur, Bekam & Sunat Modern Tegal	Klinik Kesehatan	5,0	10	Jl. Kapt Sa
                 websiteStatus: null
             });
         }
-        return results;
+        
+        if (results.length === 0) {
+            return { success: false, message: "Tidak ada data yang berhasil diproses. Periksa format (pastikan menggunakan TAB atau koma sebagai pemisah)." };
+        }
+        
+        return { success: true, data: results, totalRows: results.length, skipped: skipped };
     }
 
-    // update UI
+    // ========== CEK WEBSITE ==========
+    async function checkWebsiteStatus(url) {
+        if (!url || url.trim() === "") return false;
+        let target = url.trim();
+        if (!target.startsWith("http")) target = "https://" + target;
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 6000);
+            const response = await fetch(target, { method: 'HEAD', mode: 'cors', cache: 'no-cache', signal: controller.signal });
+            clearTimeout(timeoutId);
+            return response.ok;
+        } catch (err) {
+            return false;
+        }
+    }
+
+    async function updateAllWebsitesStatus() {
+        const statusDiv = document.getElementById("statsStatus");
+        const btn = document.getElementById("checkAllWebsitesBtn");
+        const originalBtnText = btn.innerHTML;
+        btn.innerHTML = '<span class="loader"></span> Mengecek...';
+        btn.disabled = true;
+        statusDiv.innerHTML = "🔄 Mengecek semua website (bisa makan waktu)...";
+        
+        for (let i = 0; i < bisnisData.length; i++) {
+            if (bisnisData[i].website && bisnisData[i].website.trim() !== "") {
+                const active = await checkWebsiteStatus(bisnisData[i].website);
+                bisnisData[i].websiteStatus = active;
+                if (i % 5 === 0) renderCurrentView();
+            } else {
+                bisnisData[i].websiteStatus = null;
+            }
+        }
+        renderCurrentView();
+        const activeCount = bisnisData.filter(b => b.websiteStatus === true).length;
+        statusDiv.innerHTML = `✅ Selesai. ${activeCount} website aktif.`;
+        btn.innerHTML = originalBtnText;
+        btn.disabled = false;
+        setTimeout(() => statusDiv.innerHTML = "⚡ Status website tersedia", 3000);
+    }
+
+    // ========== RENDER UI ==========
     function renderCurrentView() {
         let filtered = [];
         const filter = document.querySelector(".filter-btn.active")?.dataset.filter || "all";
@@ -482,33 +566,34 @@ Griya Akupunktur, Bekam & Sunat Modern Tegal	Klinik Kesehatan	5,0	10	Jl. Kapt Sa
             const statusClass = !hasWebsite ? "" : (biz.websiteStatus === true ? "status-active" : (biz.websiteStatus === false ? "status-inactive" : "status-waiting"));
             const statusText = !hasWebsite ? "🚫 Tidak ada website" : (biz.websiteStatus === true ? "✅ Aktif" : (biz.websiteStatus === false ? "❌ Tidak aktif" : "⏳ Belum dicek"));
             const phoneExists = biz.telepon && biz.telepon.trim() !== "";
-            const websiteUrl = hasWebsite ? biz.website : "";
-            const fullUrl = websiteUrl && !websiteUrl.startsWith('http') ? 'https://' + websiteUrl : websiteUrl;
+            const safeName = escapeAttr(biz.nama);
+            const safePhone = escapeAttr(biz.telepon);
+            const safeWebsite = escapeAttr(biz.website);
             
             return `<div class="card">
                 <div class="card-header">
-                    <div class="business-name">✂️ ${escapeHtml(biz.nama)}</div>
+                    <div class="business-name">🏪 ${escapeHtml(biz.nama)}</div>
                     <div class="rating"><span class="stars">⭐ ${biz.rating}</span><span class="review-count">(${biz.ulasan.toLocaleString()} ulasan)</span><span class="category">${escapeHtml(biz.kategori)}</span></div>
                 </div>
                 <div class="card-body">
                     <div class="info-row">📍 ${escapeHtml(biz.alamat.substring(0, 80))}</div>
-                    ${phoneExists ? `<div class="info-row">📞 <span class="phone-number">${biz.telepon}</span></div>` : `<div class="info-row">📞 <span style="color:gray;">Nomor tidak tersedia</span></div>`}
+                    ${phoneExists ? `<div class="info-row">📞 <span class="phone-number">${escapeHtml(biz.telepon)}</span></div>` : `<div class="info-row">📞 <span style="color:gray;">Nomor tidak tersedia</span></div>`}
                     <div class="info-row" style="flex-wrap: wrap; gap: 8px;">
                         ${hasWebsite ? 
                             `<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; width: 100%;">
                                 <span class="website-badge">${escapeHtml(biz.website.substring(0,45))}</span>
                                 <span class="status-badge ${statusClass}">${statusText}</span>
                                 <div style="display: flex; gap: 6px; margin-left: auto;">
-                                    <button class="btn-copy-website" data-url="${escapeHtml(biz.website)}" title="Salin URL Website">🔗 Copy URL</button>
-                                    <button class="btn-visit-website" data-url="${escapeHtml(fullUrl)}" title="Buka Website">🌐 Visit</button>
+                                    <button class="btn-copy-website" data-url="${safeWebsite}" title="Salin URL Website">🔗 Copy URL</button>
+                                    <button class="btn-visit-website" data-url="${safeWebsite}" title="Buka Website">🌐 Visit</button>
                                 </div>
                             </div>` 
                             : `<span class="status-badge status-waiting">🚫 Tidak punya website</span>`
                         }
                     </div>
                     <div class="btn-group">
-                        ${phoneExists ? `<button class="btn-copy-phone" data-phone="${biz.telepon}">📋 Copy Telepon</button>` : `<button disabled style="opacity:0.5;">📋 No Telp</button>`}
-                        ${phoneExists ? `<button class="btn-copy-wa" data-name="${escapeHtml(biz.nama)}" data-phone="${biz.telepon}">💬 Copy WA (salam otomatis)</button>` : `<button disabled>💬 WA Tidak Ada</button>`}
+                        ${phoneExists ? `<button class="btn-copy-phone" data-phone="${safePhone}">📋 Copy Telepon</button>` : `<button disabled class="btn-copy-phone" style="opacity:0.5;">📋 No Telp</button>`}
+                        ${phoneExists ? `<button class="btn-copy-wa" data-name="${safeName}" data-phone="${safePhone}">💬 Copy WA (salam otomatis)</button>` : `<button disabled style="opacity:0.5;">💬 WA Tidak Ada</button>`}
                     </div>
                 </div>
             </div>`}).join('')}</div>`;
@@ -518,155 +603,131 @@ Griya Akupunktur, Bekam & Sunat Modern Tegal	Klinik Kesehatan	5,0	10	Jl. Kapt Sa
         updatePreviewWA();
     }
     
-    // Event untuk tombol Copy URL dan Visit Website
     function attachWebsiteEvents() {
         document.querySelectorAll(".btn-copy-website").forEach(btn => {
-            btn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                const url = btn.getAttribute("data-url");
-                if (url) copyToClipboard(url, "🔗 URL Website tersalin!");
-                else copyToClipboard("", "Tidak ada URL");
-            });
+            btn.removeEventListener('click', handleCopyWebsite);
+            btn.addEventListener('click', handleCopyWebsite);
         });
         document.querySelectorAll(".btn-visit-website").forEach(btn => {
-            btn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                let url = btn.getAttribute("data-url");
-                if (url) {
-                    if (!url.startsWith('http')) url = 'https://' + url;
-                    window.open(url, '_blank', 'noopener,noreferrer');
-                } else {
-                    copyToClipboard("", "URL tidak valid");
-                }
-            });
+            btn.removeEventListener('click', handleVisitWebsite);
+            btn.addEventListener('click', handleVisitWebsite);
         });
     }
     
-    // Fungsi baru: Mendapatkan teks kustom dari input
-    function getCustomWAPhrase() {
-        const inputField = document.getElementById("customWAText");
-        if (inputField && inputField.value.trim() !== "") {
-            return inputField.value.trim();
-        }
-        return "tempat khitan"; // default
+    function handleCopyWebsite(e) {
+        let url = e.currentTarget.getAttribute("data-url");
+        if (url) {
+            if (!url.startsWith('http')) url = 'https://' + url;
+            copyToClipboard(url, "🔗 URL Website tersalin!");
+        } else copyToClipboard("", "Tidak ada URL");
     }
     
-    // Preview teks WA yang akan dihasilkan (update di bagian edit bar)
+    function handleVisitWebsite(e) {
+        let url = e.currentTarget.getAttribute("data-url");
+        if (url) {
+            if (!url.startsWith('http')) url = 'https://' + url;
+            window.open(url, '_blank', 'noopener,noreferrer');
+        } else copyToClipboard("", "URL tidak valid");
+    }
+    
+    function getCustomWAPhrase() {
+        const inputField = document.getElementById("customWAText");
+        return (inputField && inputField.value.trim()) ? inputField.value.trim() : "tempat usaha";
+    }
+    
     function updatePreviewWA() {
         const previewSpan = document.getElementById("previewWAFormat");
         if (previewSpan) {
             const customPhrase = getCustomWAPhrase();
             const hour = new Date().getHours();
-            let greet = "";
-            if (hour >= 5 && hour < 10) greet = "Pagi";
-            else if (hour >= 10 && hour < 15) greet = "Siang";
-            else if (hour >= 15 && hour < 18) greet = "Sore";
-            else greet = "Malam";
-            previewSpan.innerHTML = `➡️ Contoh: "Selamat ${greet}, dengan ${customPhrase} Rumah Sunat Tegal."`;
+            let greet = hour >= 5 && hour < 10 ? "Pagi" : (hour >= 10 && hour < 15 ? "Siang" : (hour >= 15 && hour < 18 ? "Sore" : "Malam"));
+            previewSpan.innerHTML = `➡️ Contoh: "Selamat ${greet}, dengan ${customPhrase} Warung Accessories."`;
         }
     }
     
     function attachCopyEvents() {
         document.querySelectorAll(".btn-copy-phone").forEach(btn => {
-            btn.addEventListener("click", () => copyToClipboard(btn.getAttribute("data-phone"), "📞 Nomor tersalin!"));
+            btn.removeEventListener('click', handleCopyPhone);
+            btn.addEventListener('click', handleCopyPhone);
         });
-        
-        // ========== PERUBAHAN UTAMA: FUNGSI COPY WA DENGAN TEKS CUSTOM ==========
         document.querySelectorAll(".btn-copy-wa").forEach(btn => {
-            btn.addEventListener("click", () => {
-                const name = btn.getAttribute("data-name");
-                const phone = btn.getAttribute("data-phone");
-                const hour = new Date().getHours();
-                let greet = "";
-                if (hour >= 5 && hour < 10) greet = "Pagi";
-                else if (hour >= 10 && hour < 15) greet = "Siang";
-                else if (hour >= 15 && hour < 18) greet = "Sore";
-                else greet = "Malam";
-                
-                // Ambil teks custom dari input (misal: "rental mobil", "tempat khitan", dll)
-                const customPhrase = getCustomWAPhrase();
-                
-                // Format pesan baru: "Selamat {salam}, dengan {customPhrase} {nama_bisnis}."
-                const msg = `Selamat ${greet}, dengan ${customPhrase} ${name}.`;
-                copyToClipboard(msg, "💬 Pesan WA (custom) siap tempel!");
-            });
+            btn.removeEventListener('click', handleCopyWA);
+            btn.addEventListener('click', handleCopyWA);
         });
-        // ========== AKHIR PERUBAHAN ==========
     }
     
-    async function checkWebsiteStatus(url) {
-        if (!url) return false;
-        let target = url.trim();
-        if (!target.startsWith("http")) target = "https://" + target;
-        try {
-            const controller = new AbortController();
-            setTimeout(() => controller.abort(), 5000);
-            await fetch(target, { method: "HEAD", mode: "no-cors", signal: controller.signal });
-            return true;
-        } catch(e) { return false; }
+    function handleCopyPhone(e) {
+        const phone = e.currentTarget.getAttribute("data-phone");
+        if (phone) copyToClipboard(phone, "📞 Nomor tersalin!");
+        else copyToClipboard("", "Nomor tidak tersedia");
     }
     
-    async function updateAllWebsitesStatus() {
-        const statusDiv = document.getElementById("statsStatus");
-        statusDiv.innerHTML = "🔄 Mengecek semua website...";
-        for (let i=0; i<bisnisData.length; i++) {
-            if (bisnisData[i].website && bisnisData[i].website.trim()) {
-                const active = await checkWebsiteStatus(bisnisData[i].website);
-                bisnisData[i].websiteStatus = active;
-            }
-        }
-        statusDiv.innerHTML = "✅ Pengecekan selesai.";
-        renderCurrentView();
-        setTimeout(() => statusDiv.innerHTML = "⚡ Status website tersedia", 2000);
+    function handleCopyWA(e) {
+        const name = e.currentTarget.getAttribute("data-name");
+        const phone = e.currentTarget.getAttribute("data-phone");
+        if (!phone) { copyToClipboard("", "Nomor tidak tersedia"); return; }
+        const hour = new Date().getHours();
+        let greet = hour >= 5 && hour < 10 ? "Pagi" : (hour >= 10 && hour < 15 ? "Siang" : (hour >= 15 && hour < 18 ? "Sore" : "Malam"));
+        const customPhrase = getCustomWAPhrase();
+        const msg = `Selamat ${greet}, dengan ${customPhrase} ${name}.`;
+        copyToClipboard(msg, "💬 Pesan WA (custom) siap tempel!");
     }
     
     function copyToClipboard(text, msg) {
-        navigator.clipboard.writeText(text);
+        if (!text) {
+            showToast("⚠️ Tidak ada teks", 1500);
+            return;
+        }
+        navigator.clipboard.writeText(text).then(() => showToast(msg)).catch(() => alert("Gagal menyalin"));
+    }
+    
+    function showToast(msg, duration = 1500) {
         const toast = document.getElementById("toast");
         toast.textContent = msg;
         toast.style.opacity = "1";
-        setTimeout(() => toast.style.opacity = "0", 1500);
+        setTimeout(() => toast.style.opacity = "0", duration);
     }
-    function escapeHtml(str) { if(!str) return ""; return str.replace(/[&<>]/g, function(m){ return m==='&'?'&amp;':(m==='<'?'&lt;':'&gt;');}); }
     
     function loadData(newData) {
         bisnisData = newData.map(item => ({ ...item, websiteStatus: null }));
         renderCurrentView();
-        document.getElementById("importFeedback").innerHTML = `✅ Berhasil mengimport ${bisnisData.length} data.`;
+        document.getElementById("statsStatus").innerHTML = "⚡ Status: belum dicek";
     }
     
-    // Event listener untuk input custom WA agar preview berubah dan jika sudah render ulang tidak perlu, tapi biar preview langsung update
-    function initCustomWAEvents() {
-        const customInput = document.getElementById("customWAText");
-        if (customInput) {
-            customInput.addEventListener("input", function() {
-                updatePreviewWA();
-                // Karena pesan WA di setiap tombol akan mengambil nilai terbaru saat diklik,
-                // kita tidak perlu render ulang semua card. Cukup update preview.
-                // Tapi jika ingin tombol yang sudah ada tetap sinkron, karena sudah pakai getCustomWAPhrase() di event listener,
-                // maka setiap klik akan mengambil nilai terkini, jadi tidak perlu render ulang.
-            });
-        }
-    }
-    
+    // ========== EVENT LISTENERS ==========
     document.getElementById("parseDataBtn").addEventListener("click", () => {
         const rawText = document.getElementById("rawDataInput").value;
         if (!rawText.trim()) { alert("Harap tempel data terlebih dahulu!"); return; }
-        const parsed = parseImportedText(rawText);
-        if (parsed.length === 0) { alert("Tidak dapat mengenali data. Pastikan format tab/kolom jelas."); return; }
-        loadData(parsed);
+        const result = parseImportedText(rawText);
+        const feedbackDiv = document.getElementById("importFeedback");
+        if (!result.success) {
+            feedbackDiv.innerHTML = `❌ ${result.message}`;
+            feedbackDiv.style.color = "#b13e0d";
+            return;
+        }
+        feedbackDiv.innerHTML = `✅ Berhasil memproses ${result.data.length} data. ${result.skipped ? `(Lewati ${result.skipped} baris tidak valid)` : ""}`;
+        feedbackDiv.style.color = "#2c6e2c";
+        loadData(result.data);
     });
+    
     document.getElementById("resetToDefaultBtn").addEventListener("click", () => {
-        const defaultParsed = parseImportedText(DEFAULT_RAW);
-        loadData(defaultParsed);
-        document.getElementById("rawDataInput").value = DEFAULT_RAW;
+        const defaultResult = parseImportedText(DEFAULT_RAW);
+        if (defaultResult.success) {
+            loadData(defaultResult.data);
+            document.getElementById("rawDataInput").value = DEFAULT_RAW;
+            document.getElementById("importFeedback").innerHTML = "✅ Data default dimuat.";
+        } else {
+            alert("Gagal memuat default");
+        }
     });
+    
     document.getElementById("clearTextareaBtn").addEventListener("click", () => {
         document.getElementById("rawDataInput").value = "";
+        document.getElementById("importFeedback").innerHTML = "";
     });
+    
     document.getElementById("checkAllWebsitesBtn").addEventListener("click", updateAllWebsitesStatus);
     
-    // init filter event
     document.querySelectorAll(".filter-btn").forEach(btn => {
         btn.addEventListener("click", function() {
             document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
@@ -675,13 +736,11 @@ Griya Akupunktur, Bekam & Sunat Modern Tegal	Klinik Kesehatan	5,0	10	Jl. Kapt Sa
         });
     });
     
-    // load default pertama kali
-    const initData = parseImportedText(DEFAULT_RAW);
-    loadData(initData);
+    // Load default pertama kali
+    const initResult = parseImportedText(DEFAULT_RAW);
+    if (initResult.success) loadData(initResult.data);
     document.getElementById("rawDataInput").value = DEFAULT_RAW;
-    
-    // Aktifkan event custom WA & preview
-    initCustomWAEvents();
+    document.getElementById("customWAText").addEventListener("input", () => updatePreviewWA());
     updatePreviewWA();
 </script>
 </body>
